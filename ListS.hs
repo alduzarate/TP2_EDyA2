@@ -16,19 +16,17 @@ emptyS = []
 singletonS :: a -> [a]
 singletonS x = [x]
 
--- lengthS l = length l
 lengthS :: [a] -> Int
+-- lengthS l = length l
 lengthS [] = 0
 lengthS (x:xs) = 1 + length xs
 
--- nthS       :: s a -> Int -> a
 -- nth xs n = xs !! n
 nthS :: [a] -> Int -> a
 nthS [] _ = error "Lista vacia"
 nthS (x:xs) 0 = x
 nthS (x:xs) n = nthS xs (n - 1)
 
--- tabulateS  :: (Int -> a) -> Int -> s a
 -- tabulateS f n --> [f(0),f(1), ... , f(n)]
 tabulateS :: (Int -> b) -> Int -> [b]
 tabulateS f 0 = emptyS
@@ -57,13 +55,13 @@ appendS xs [] = xs
 appendS [] ys = ys
 appendS (x:xs) ys = x : (appendS xs ys)
 
---takeS lista n = take n lista
 takeS:: [a] -> Int -> [a]
+--takeS lista n = take n lista
 takeS [] _ = []
 takeS xs 0 = []
 takeS l@(x:xs) n | len <= n     = l
-                     | otherwise  = x : (takeS xs (n - 1))
-      where len = lengthS lista
+                 | otherwise  = x : (takeS xs (n - 1))
+      where len = lengthS l
 
 dropS :: [a] -> Int -> [a]
 -- dropS = drop
@@ -90,55 +88,65 @@ joinS :: [[a]] -> [a]
 joinS [] = []
 joinS (x:xs) = appendS x (joinS xs)
 
+contract :: (a -> a -> a) -> [a] -> [a]
+contract _ [] = []
+contract _ [x] = [x]
+contract f (x:y:xs) = let (z, zs) = f x y ||| contract f xs
+                      in z:zs
+
 reduceS :: (a -> a -> a) -> a -> [a] -> a
--- reduceS _ e [] = e
--- reduceS f e xs = let tree = showtS xs
---                     v = reduceT f tree
---                 in case tree of
+reduceS _ e [] = e
+reduceS f e [x] = f x e
+reduceS f e xs = let ctr = contract f xs
+                     ys = reduceS f e ctr
+                 in id ys
 
-reduceS f e xs = let tree = showtS xs
-                    in 
-                        case tree of
-                            EMPTY -> e
-                            ELT v -> f v e
-                            NODE ys zs -> let (l,r) = reduceS f e ys ||| reduceS f e zs 
-                                        in f l r
-
--- reduceS (+) 0 [1,2,3,4,5] = 0 + ((1 + 2) + ((3 + 4) + 5))
-
-scanS :: (a -> a -> a) -> a -> [a] -> ([a], a)
 -- scanS _ e [] = ([e], e)
 -- scanS f e (x:xs) = 
+-- obtenerElemento :: [a] -> [a] -> Int -> a
+-- obtenerElemento s s' i |even(i) = nthS s' (div i 2)
+--                        |otherwise = nthS s' (floor (div i 2)) + nthS s (i-1)
 
-obtenerElemento s s' i |even(i) = nthS s' (div i 2)
-                       |otherwise = nthS s' (floor (div i 2)) + nthS s i-1
+-- armarLista :: [a] -> [a] -> Int -> Int -> [a]
+-- armarLista s s' i n | i < n        = (obtenerElemento s s' i) : armarLista s s' (i + 1) n
+--                     | otherwise    = []
 
-armarTupla s s' i n = (armarLista s s' i n, obtenerElemento s s' n)
+obtElemento :: (a -> a -> a) -> [a] -> [a] -> Int -> a
+obtElemento f xs ys i | even i         = nthS ys (div i 2)
+                      | otherwise      = f (nthS ys (div i 2)) (nthS xs (i - 1))
 
---devuelve la primer componente de la tupla (la lista)                        
-armarLista s s' i n | i < n        = (obtenerElemento s s' i) : armarLista s s' (i + 1) n
-                    | otherwise    = []
+armarLista :: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
+armarLista f xs ys i n | i < n         = (obtElemento f xs ys i) : armarLista f xs ys (i + 1) n
+                       | otherwise     = []
 
-contraer f e xs = let tree = showtS xs
-                in case tree of
-                  EMPTY -> [f e v]
-                  ELT v -> ?
-                  NODE l r -> contraer' l r
-        where
-          contraer' (ELT v1) (ELT v2) = f v1 v2
-          contraer' l r = contraer'
+expand :: (a -> a -> a) -> [a] -> ([a], a) -> ([a], a)
+expand f xs (ys, z) = (armarLista f xs ys 0 n, z)
+      where
+        n = lengthS xs
+-- expand s s' i n = (armarLista s s' i n, obtenerElemento s s' n)
 
-scanS f e s =   let
-                    s' = scanS' f e lista
-                in  armarTupla s s' 0 lengthS(s)
-        where
-          scanS' _ e [] = ([e],e)
-          scanS' f e xs = let
+-- --devuelve la primer componente de la tupla (la lista)                        
 
-scanS _ e [] = ([e], e)
-[1+2, 3+4, 5]
-[1,2,3,4,5] --> [(1 + 2) + ((3 + 4) + 5)]
-scan (+) 0 [1,2,3,4] = ([0, 0+1, 0+1+2, 0+1+2+3], 0+1+2+3+4)
-b = 0
+scanS :: (a -> a -> a) -> a -> [a] -> ([a], a)
+scanS _ e [] = ([], e)
+scanS f e [x] = ([e], f x e)
+scanS f e xs = let ctr = contract f xs
+                   ys = scanS f e ctr
+               in expand f xs ys
+
+-- scanS (-) [1,2,3,4,5] = [0,-1,-1-2]
+-- scanS (-) [1,2,3,4,5] = [0,-1,0 - (1 - 2)]
+-- scanS f e s =   let
+--                     s' = scanS' f e lista
+--                 in  armarTupla s s' 0 lengthS(s)
+--         where
+--           scanS' _ e [] = ([e],e)
+--           scanS' f e xs = let
+
+-- scanS _ e [] = ([e], e)
+-- [1+2, 3+4, 5]
+-- [1,2,3,4,5] --> [(1 + 2) + ((3 + 4) + 5)]
+-- scan (+) 0 [1,2,3,4] = ([0, 0+1, 0+1+2, 0+1+2+3], 0+1+2+3+4)
+-- b = 0
 fromList   :: [a] -> [a] 
 fromList = id
