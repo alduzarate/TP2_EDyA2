@@ -94,22 +94,17 @@ contract _ [x] = [x]
 contract f (x:y:xs) = let (z, zs) = f x y ||| contract f xs
                       in z:zs
 
+-- contract (-) 0 [1,2,3] = 
+--   (-1,zs) = -1 ||| contract (-) [3] = (-1,[3]) --> devuelvo -1:[3] = [-1,3]
+
+contract (-) [3] = [3]
+
 reduceS :: (a -> a -> a) -> a -> [a] -> a
 reduceS _ e [] = e
 reduceS f e [x] = f x e
 reduceS f e xs = let ctr = contract f xs
                      ys = reduceS f e ctr
                  in id ys
-
--- scanS _ e [] = ([e], e)
--- scanS f e (x:xs) = 
--- obtenerElemento :: [a] -> [a] -> Int -> a
--- obtenerElemento s s' i |even(i) = nthS s' (div i 2)
---                        |otherwise = nthS s' (floor (div i 2)) + nthS s (i-1)
-
--- armarLista :: [a] -> [a] -> Int -> Int -> [a]
--- armarLista s s' i n | i < n        = (obtenerElemento s s' i) : armarLista s s' (i + 1) n
---                     | otherwise    = []
 
 obtElemento :: (a -> a -> a) -> [a] -> [a] -> Int -> a
 obtElemento f xs ys i | even i         = nthS ys (div i 2)
@@ -122,31 +117,64 @@ armarLista f xs ys i n | i < n         = (obtElemento f xs ys i) : armarLista f 
 expand :: (a -> a -> a) -> [a] -> ([a], a) -> ([a], a)
 expand f xs (ys, z) = (armarLista f xs ys 0 n, z)
       where
-        n = lengthS xs
--- expand s s' i n = (armarLista s s' i n, obtenerElemento s s' n)
+        n = lengthS xs                     
 
--- --devuelve la primer componente de la tupla (la lista)                        
+expand (-) [-1,3] ([0],4) = 
+
+
+
 
 scanS :: (a -> a -> a) -> a -> [a] -> ([a], a)
 scanS _ e [] = ([], e)
-scanS f e [x] = ([e], f x e)
+scanS f e [x] = ([e], f e x)
 scanS f e xs = let ctr = contract f xs
                    ys = scanS f e ctr
                in expand f xs ys
 
--- scanS (-) [1,2,3,4,5] = [0,-1,-1-2]
--- scanS (-) [1,2,3,4,5] = [0,-1,0 - (1 - 2)]
--- scanS f e s =   let
---                     s' = scanS' f e lista
---                 in  armarTupla s s' 0 lengthS(s)
---         where
---           scanS' _ e [] = ([e],e)
---           scanS' f e xs = let
-
--- scanS _ e [] = ([e], e)
--- [1+2, 3+4, 5]
--- [1,2,3,4,5] --> [(1 + 2) + ((3 + 4) + 5)]
--- scan (+) 0 [1,2,3,4] = ([0, 0+1, 0+1+2, 0+1+2+3], 0+1+2+3+4)
--- b = 0
 fromList   :: [a] -> [a] 
 fromList = id
+
+-- scanS (-) 0 [1,2,3] = 
+--   ctr = contract (-) 0 [1,2,3] = [-1,3]
+--   yr = scanS (-) 0 [-1,3] --> devuelvo expand (-) [1,2,3] scanS (-) 0 [-1,3]
+
+-- scanS (-) 0 [-1,3] = 
+--   ctr = [-4]
+--   yr = scanS (-) 0 [-4] --> devuelvo expand (-) [-1,3] ([0],4])
+
+
+-- scanS (-) 0 [-4] = ([0], 0 - -4) = ([0],4)
+-- ------------------------------------------------------------------------------
+
+-- scanS (-) 0 [1,2,3,4,5,6] = 
+--   ctr = contract (-) 0 [1,2,3,4,5,6] = [-1,-1,-1]
+--   yr = scanS (-) 0 [-1,-1,-1] --> devuelvo expand (-) [1,2,3,4,5,6] scanS (-) 0 [-1,-1,-1]
+{-
+contract (-) 0 [1,2,3,4,5,6] = 
+  (-1,zs) = 1 - 2 ||| contract (-) [3,4,5,6] --> devuelvo [-1,-1,-1]
+
+contract (-) 0 [3,4,5,6] = 
+  (-1, zs) = 3 - 4 ||| contract (-) [5,6] --> devuelvo [-1,-1]
+
+contract (0) 0 [5,6]=
+  (-1,zs) = 5-6 ||| contract (-) [] --> devuelvo -1:contract (-) 0 [] = [-1]
+-}
+
+-- scanS (-) 0 [-1,-1,-1] = 
+--   ctr = [0,-1]
+--   yr = scanS (-) 0 [0,-1] --> devuelvo expand (-) [-1,-1,-1] scanS (-) 0 [0,-1]
+
+-- scanS (-) 0 [0,-1] =
+--   ctr = [1]
+--   yr = scanS (-) 0 [1] --> devuelvo expand (-) [0,-1] scanS (-) 0 [1] = expand (-) [0,-1] ([0], 1 - 0)
+
+
+-- scan ⊕ b hx0, x1, x2, x3, x4, x5i =
+-- (hb,
+-- b ⊕ x0,
+-- b ⊕ (x0 ⊕ x1),
+-- (b ⊕ (x0 ⊕ x1)) ⊕ x2,
+-- b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3)),
+-- (b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3))) ⊕ x4i,
+-- b ⊕ (((x0 ⊕ x1) ⊕ (x2 ⊕ x3)) ⊕ (x4 ⊕ x5))
+-- )

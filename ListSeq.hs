@@ -94,29 +94,52 @@ contract f (x:y:xs) = let (z, zs) = f x y ||| contract f xs
                       in z:zs
 
 reduceS_ _ e [] = e
-reduceS_ f e [x] = f x e
+reduceS_ f e [x] = f e x
 reduceS_ f e xs = let ctr = contract f xs
                       ys = reduceS_ f e ctr
                   in id ys
---TODO: hacer que vaya obteniendo los elementos en una sola pasada
-obtElemento :: (a -> a -> a) -> [a] -> [a] -> Int -> a
-obtElemento f xs ys i | even i         = nthS_ ys (div i 2)
-                      | otherwise      = f (nthS_ ys (div i 2)) (nthS_ xs (i - 1))
 
-armarLista :: (a -> a -> a) -> [a] -> [a] -> Int -> Int -> [a]
-armarLista f xs ys i n | i < n         = (obtElemento f xs ys i) : armarLista f xs ys (i + 1) n
-                      | otherwise     = []
-
-expand :: (a -> a -> a) -> [a] -> ([a], a) -> ([a], a)
-expand f xs (ys, z) = (armarLista f xs ys 0 n, z)
-      where
-        n = lengthS_ xs
+-- buildList :: (a -> a -> a) -> [a] -> [a] -> Bool -> [a]
+-- buildList f [] _ flag = []
+-- buildList f _ [] flag = []
+-- buildList f [x] [y] flag = [y]
+-- buildList f (x:z:xs) (y:ys) flag  | flag         = (f y x) : buildList f xs ys False
+--                                   | otherwise    = y : buildList f (x:z:xs) (y:ys) True
                       
 scanS_ _ e [] = ([], e)
-scanS_ f e [x] = ([e], f x e)
+scanS_ f e [x] = ([e], f e x)
 scanS_ f e xs = let ctr = contract f xs
-                    ys = scanS_ f e ctr
-                  in expand f xs ys
-              
+                    (ys, y) = scanS_ f e ctr
+                  in (buildList f xs ys False, y)
+      where 
+        buildList f [] _ flag = []
+        buildList f _ [] flag = []
+        buildList f [x] [y] flag = [y]
+        buildList f (x:z:xs) (y:ys) flag  | flag         = (f y x) : buildList f xs ys False
+                                          | otherwise    = y : buildList f (x:z:xs) (y:ys) True
+
 fromList_ = id
 
+-- scanS (-) 0 [1,2,3,4,5,6] = 
+--   ctr = contract (-) 0 [1,2,3,4,5,6] = [-1,-1,-1]
+--   yr = scanS (-) 0 [-1,-1,-1] --> devuelvo expand (-) [1,2,3,4,5,6] scanS (-) 0 [-1,-1,-1]
+
+
+-- scanS (-) 0 [-1,-1,-1] = 
+--   ctr = [0,-1]
+--   yr = scanS (-) 0 [0,-1] --> devuelvo expand (-) [-1,-1,-1] scanS (-) 0 [0,-1]
+
+-- scanS (-) 0 [0,-1] =
+--   ctr = [1]
+--   yr = scanS (-) 0 [1] --> devuelvo expand (-) [0,-1] scanS (-) 0 [1] = expand (-) [0,-1] ([0], 1 - 0)
+
+
+-- scan ⊕ b hx0, x1, x2, x3, x4, x5i =
+-- (hb,
+-- b ⊕ x0,
+-- b ⊕ (x0 ⊕ x1),
+-- (b ⊕ (x0 ⊕ x1)) ⊕ x2,
+-- b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3)),
+-- (b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3))) ⊕ x4i,
+-- b ⊕ (((x0 ⊕ x1) ⊕ (x2 ⊕ x3)) ⊕ (x4 ⊕ x5))
+-- )

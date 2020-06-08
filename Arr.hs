@@ -28,7 +28,6 @@ subArray :: Int ->  -- índice inicial
             Int ->  -- tamaño
             Arr a -> Arr a
 subArray i n (A p) = A (V.slice i n p)             
-             
 
 tabulate :: (Int -> a) -> Int -> Arr a
 tabulate f n  = A (V.generate n f)
