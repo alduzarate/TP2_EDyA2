@@ -26,16 +26,12 @@ emptyS_ = []
 
 singletonS_ x = [x]
 
--- lengthS l = length l
-lengthS_ [] = 0
-lengthS_ (x:xs) = 1 + lengthS_ xs
+lengthS_ = length
 
--- nth xs n = xs !! n
 nthS_ [] _ = error "Lista vacia"
-nthS_ (x:xs) 0 = x
-nthS_ (x:xs) n = nthS_ xs (n - 1)
+nthS_ (x:_) 0 = x
+nthS_ (_:xs) n = nthS_ xs (n - 1)
 
--- tabulateS f n --> [f(0),f(1), ... , f(n)]
 tabulateS_ f 0 = emptyS_
 tabulateS_ f n = tabulateS_' f n 0
                 where
@@ -54,24 +50,29 @@ filterS_ p (x:xs) =  let
                         (y, ys) = p x ||| filterS_ p xs
                     in  if y then x : ys else ys
 
--- appendS xs ys = xs ++ ys
 appendS_ xs [] = xs
 appendS_ [] ys = ys
 appendS_ (x:xs) ys = x : (appendS_ xs ys)
 
---takeS lista n = take n lista
+{-
 takeS_ [] _ = []
 takeS_ xs 0 = []
 takeS_ l@(x:xs) n | len <= n     = l
-                | otherwise  = x : (takeS_ xs (n - 1))
+                  | otherwise  = x : (takeS_ xs (n - 1))
       where len = lengthS_ l
+-}
 
--- dropS_ = drop
+takeS_ xs n = take n xs
+
+{-
 dropS_ [] _ = []
 dropS_ xs 0 = xs
 dropS_ l@(x:xs) n | len <= n     = [] 
                   | otherwise  = (dropS_ xs (n - 1))
       where len = lengthS_ l
+-}
+
+dropS_ xs n = drop n xs
 
 showtS_ [] = EMPTY
 showtS_ [x] = ELT x
@@ -83,7 +84,6 @@ showtS_ xs =  let
 showlS_ [] = NIL
 showlS_ (x:xs) = CONS x xs
 
--- joinS_ = concat
 joinS_ [] = []
 joinS_ (x:xs) = appendS_ x (joinS_ xs)
 
@@ -98,13 +98,6 @@ reduceS_ f e [x] = f e x
 reduceS_ f e xs = let ctr = contract f xs
                       ys = reduceS_ f e ctr
                   in id ys
-
--- buildList :: (a -> a -> a) -> [a] -> [a] -> Bool -> [a]
--- buildList f [] _ flag = []
--- buildList f _ [] flag = []
--- buildList f [x] [y] flag = [y]
--- buildList f (x:z:xs) (y:ys) flag  | flag         = (f y x) : buildList f xs ys False
---                                   | otherwise    = y : buildList f (x:z:xs) (y:ys) True
                       
 scanS_ _ e [] = ([], e)
 scanS_ f e [x] = ([e], f e x)
@@ -119,27 +112,3 @@ scanS_ f e xs = let ctr = contract f xs
                                                 | otherwise    = y : buildList f l1 l2 True
 
 fromList_ = id
-
--- scanS (-) 0 [1,2,3,4,5,6] = 
---   ctr = contract (-) 0 [1,2,3,4,5,6] = [-1,-1,-1]
---   yr = scanS (-) 0 [-1,-1,-1] --> devuelvo expand (-) [1,2,3,4,5,6] scanS (-) 0 [-1,-1,-1]
-
-
--- scanS (-) 0 [-1,-1,-1] = 
---   ctr = [0,-1]
---   yr = scanS (-) 0 [0,-1] --> devuelvo expand (-) [-1,-1,-1] scanS (-) 0 [0,-1]
-
--- scanS (-) 0 [0,-1] =
---   ctr = [1]
---   yr = scanS (-) 0 [1] --> devuelvo expand (-) [0,-1] scanS (-) 0 [1] = expand (-) [0,-1] ([0], 1 - 0)
-
-
--- scan ⊕ b hx0, x1, x2, x3, x4, x5i =
--- (hb,
--- b ⊕ x0,
--- b ⊕ (x0 ⊕ x1),
--- (b ⊕ (x0 ⊕ x1)) ⊕ x2,
--- b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3)),
--- (b ⊕ ((x0 ⊕ x1) ⊕ (x2 ⊕ x3))) ⊕ x4i,
--- b ⊕ (((x0 ⊕ x1) ⊕ (x2 ⊕ x3)) ⊕ (x4 ⊕ x5))
--- )
