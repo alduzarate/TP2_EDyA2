@@ -28,7 +28,7 @@ singletonS_ x = [x]
 
 -- lengthS l = length l
 lengthS_ [] = 0
-lengthS_ (x:xs) = 1 + length xs
+lengthS_ (x:xs) = 1 + lengthS_ xs
 
 -- nth xs n = xs !! n
 nthS_ [] _ = error "Lista vacia"
@@ -112,11 +112,11 @@ scanS_ f e xs = let ctr = contract f xs
                     (ys, y) = scanS_ f e ctr
                   in (buildList f xs ys False, y)
       where 
-        buildList f [] _ flag = []
-        buildList f _ [] flag = []
-        buildList f [x] [y] flag = [y]
-        buildList f (x:z:xs) (y:ys) flag  | flag         = (f y x) : buildList f xs ys False
-                                          | otherwise    = y : buildList f (x:z:xs) (y:ys) True
+        buildList f [] _ _ = []
+        buildList f _ [] _ = []
+        buildList f [x] [y] _ = [y]
+        buildList f l1@(x:z:xs) l2@(y:ys) flag  | flag         = (f y x) : buildList f xs ys False
+                                                | otherwise    = y : buildList f l1 l2 True
 
 fromList_ = id
 

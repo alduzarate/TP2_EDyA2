@@ -85,12 +85,13 @@ showlS_ xs | len == 0       = NIL
 -- [1,2,3,4,5] --> [1 oplus 2] [3 oplus 4] [5] m = 2
 
 contract :: (a -> a -> a) -> A.Arr a -> A.Arr a
-contract f xs = if even len then tabulateS f' m else tabulateS f' (m+1)
+contract f xs = if even len then tabulateS f' m
+                else tabulateS f' (m + 1)
     where
       len = lengthS xs
       m = div len 2
-      f' i = if (2*i) == (len - 1) then (nthS xs (len - 1)) 
-                       else f (nthS xs (2 * i)) (nthS xs (2 * i + 1))
+      f' i = if (2 * i) == (len - 1) then (nthS xs (len - 1)) 
+             else f (nthS xs (2 * i)) (nthS xs (2 * i + 1))
 
 reduceS_ f e xs | len == 0      = e
                 | len == 1      = f e (nthS xs 0)
@@ -107,18 +108,18 @@ scanS_ f e xs | len == 0        = (emptyS, e)
     where
       len = lengthS xs
       buildList f xs ys = tabulateS (\i -> if even i then (nthS ys (div i 2))
-                                                    else f (nthS ys (div i 2)) (nthS xs (i - 1)))
-                                   len
+                                           else f (nthS ys (div i 2)) (nthS xs (i - 1)))
+                                    len
 
-joinT :: Tree a -> Tree a -> Tree a
-joinT l r = Join l r
+-- joinT :: Tree a -> Tree a -> Tree a
+-- joinT l r = Join l r
 
-l2Tree :: [a] -> [Tree a]
-l2Tree [] = []
-l2Tree (x:xs) = (Leaf x) : l2Tree xs
+-- l2Tree :: [a] -> [Tree a]
+-- l2Tree [] = []
+-- l2Tree (x:xs) = (Leaf x) : l2Tree xs
 
-instance Show a => Show (Tree a) where
-         show p = show' p
-            where show' E = "empty"
-                  show' (Leaf x) = show x
-                  show' (Join l r) = "(" ++ show' l ++ "#" ++ show' r ++ ")"
+-- instance Show a => Show (Tree a) where
+--          show p = show' p
+--             where show' E = "empty"
+--                   show' (Leaf x) = show x
+--                   show' (Join l r) = "(" ++ show' l ++ "#" ++ show' r ++ ")"
